@@ -1,8 +1,9 @@
 import ldap
 from flask import request, render_template, flash, redirect, url_for, \
     Blueprint, g
-from flask.ext.login import current_user, login_user, logout_user, \
+from flask_login import current_user, login_user, logout_user, \
     login_required
+from flask_user import roles_required
 from my_app import login_manager, db
 from my_app.auth.models import User, LoginForm
 
@@ -27,7 +28,7 @@ def home():
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated():
+    if current_user.is_authenticated:
         flash('You are already logged in.')
         return redirect(url_for('auth.home'))
 
@@ -36,7 +37,7 @@ def login():
     if request.method == 'POST' and form.validate():
         username = request.form.get('username')
         password = request.form.get('password')
-
+        
         try:
             User.try_login(username, password)
         except ldap.INVALID_CREDENTIALS:
@@ -58,6 +59,10 @@ def login():
 
     return render_template('login.html', form=form)
 
+@auth.route('/admin')
+@roles_required('Central')
+def admin_dashboard():
+    return render_template('admin.html')
 
 @auth.route('/logout')
 @login_required
