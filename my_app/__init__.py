@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from sqlalchemy import create_engine, MetaData, Table
 
 
 APP_ROOT = os.path.join(os.path.dirname(__file__), '..')
@@ -18,6 +19,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_uri_string
 app.config['LDAP_PROVIDER_URL'] = os.getenv('LDAP_PROVIDER_URL')
 # app.config['LDAP_PROTOCOL_VERSION'] = 3
 db = SQLAlchemy(app)
+
+# alternative to using Flask-User methodology
+engine = create_engine(db_uri_string)
+metadata = MetaData()
+users = Table(os.getenv('LOGIN_TABLE'), metadata, autoload=True, autoload_with=engine)
+print(repr(users))
 
 app.secret_key = 'some_random_key'
 
